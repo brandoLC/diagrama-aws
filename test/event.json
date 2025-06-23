@@ -1,0 +1,9 @@
+{
+  "body": "{\"codigo\": \"from diagrams import Diagram, Cluster\\nfrom diagrams.aws.compute import ECS, Lambda\\nfrom diagrams.aws.database import RDS, ElastiCache\\nfrom diagrams.aws.network import ELB, APIGateway\\nfrom diagrams.aws.storage import S3\\n\\nwith Diagram('Aplicación de Microservicios', show=False):\\n    api = APIGateway('API Gateway')\\n    \\n    with Cluster('Servicios'):\\n        lb = ELB('Load Balancer')\\n        servicios = ECS('Microservicios')\\n    \\n    with Cluster('Base de Datos'):\\n        db_principal = RDS('MySQL')\\n        cache = ElastiCache('Redis')\\n    \\n    almacen = S3('Archivos')\\n    procesador = Lambda('Procesamiento')\\n    \\n    api >> lb >> servicios\\n    servicios >> db_principal\\n    servicios >> cache\\n    servicios >> procesador >> almacen\"}",
+  "headers": {
+    "Content-Type": "application/json"
+  },
+  "httpMethod": "POST",
+  "path": "/generar-diagrama",
+  "queryStringParameters": null
+}

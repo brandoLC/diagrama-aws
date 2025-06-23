@@ -1,0 +1,18 @@
+{
+  "name": "api-diagramas-serverless",
+  "version": "1.0.0",
+  "description": "API Serverless para generar diagramas usando AWS Lambda",
+  "scripts": {
+    "deploy": "serverless deploy",
+    "deploy-dev": "serverless deploy --stage dev",
+    "deploy-prod": "serverless deploy --stage prod",
+    "remove": "serverless remove",
+    "logs": "serverless logs -f generarDiagrama -t",
+    "test-local": "serverless invoke local -f generarDiagrama -p test/event.json",
+    "create-layer": "chmod +x scripts/create-layer.sh && ./scripts/create-layer.sh"
+  },
+  "devDependencies": {
+    "serverless": "^3.38.0",
+    "serverless-python-requirements": "^6.0.0"
+  }
+}

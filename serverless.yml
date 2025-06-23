@@ -1,0 +1,59 @@
+org: brandolc18
+service: api-diagramas
+
+frameworkVersion: "3"
+
+provider:
+  name: aws
+  runtime: python3.9
+  region: us-east-1
+  memorySize: 512
+  timeout: 30
+  role: arn:aws:iam::248056481657:role/LabRole
+  environment:
+    STAGE: ${opt:stage, 'dev'}
+
+functions:
+  generarDiagrama:
+    handler: handler.generar_diagrama
+    layers:
+      - { Ref: GraphvizLambdaLayer }
+    events:
+      - http:
+          path: /generar-diagrama
+          method: post
+          cors: true
+      - http:
+          path: /generar-diagrama
+          method: options
+          cors: true
+
+layers:
+  graphviz:
+    name: ${self:service}-graphviz-layer-${opt:stage, 'dev'}
+    description: Capa con Graphviz y dependencias para generar diagramas
+    compatibleRuntimes:
+      - python3.9
+    package:
+      artifact: layers/graphviz-layer/graphviz-layer.zip
+
+resources:
+  Resources:
+    GraphvizLambdaLayer:
+      Type: AWS::Lambda::LayerVersion
+      Properties:
+        LayerName: ${self:service}-graphviz-layer-${opt:stage, 'dev'}
+        Description: Capa con Graphviz instalado para generar diagramas
+        Content:
+          S3Bucket: { Ref: ServerlessDeploymentBucket }
+          S3Key: { Ref: GraphvizLambdaLayerLambdaLayer }
+
+plugins:
+  - serverless-python-requirements
+
+custom:
+  pythonRequirements:
+    dockerizePip: true
+    layer:
+      name: ${self:service}-requirements-${opt:stage, 'dev'}
+      description: Python requirements layer
