@@ -17,7 +17,7 @@ functions:
   generarDiagrama:
     handler: handler.generar_diagrama
     layers:
-      - arn:aws:lambda:us-east-1:077246666028:layer:GraphvizLayer:1
+      - { Ref: GraphvizLambdaLayer }
     events:
       - http:
           path: /generar-diagrama
@@ -59,3 +59,14 @@ layers:
       - python3.9
     package:
       artifact: layers/graphviz-layer/graphviz-layer.zip
+
+resources:
+  Resources:
+    GraphvizLambdaLayer:
+      Type: AWS::Lambda::LayerVersion
+      Properties:
+        LayerName: ${self:service}-graphviz-layer-${opt:stage, 'dev'}
+        Description: Capa con Graphviz instalado para generar diagramas
+        Content:
+          S3Bucket: { Ref: ServerlessDeploymentBucket }
+          S3Key: { Ref: GraphvizLambdaLayerLambdaLayer }
