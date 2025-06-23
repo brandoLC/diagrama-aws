@@ -1,230 +1,237 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>🚀 Generador de Diagramas AWS - API Test</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+      }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            overflow: hidden;
-        }
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+      }
 
-        .header {
-            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
-            color: white;
-            padding: 30px;
-            text-align: center;
+      .header {
+        background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+        color: white;
+        padding: 30px;
+        text-align: center;
+      }
+
+      .header h1 {
+        font-size: 2.5em;
+        margin-bottom: 10px;
+      }
+
+      .header p {
+        font-size: 1.2em;
+        opacity: 0.9;
+      }
+
+      .content {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+        padding: 30px;
+      }
+
+      .input-section {
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 25px;
+      }
+
+      .output-section {
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 25px;
+      }
+
+      h2 {
+        color: #2c3e50;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      textarea {
+        width: 100%;
+        height: 300px;
+        border: 2px solid #e9ecef;
+        border-radius: 10px;
+        padding: 15px;
+        font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace;
+        font-size: 14px;
+        line-height: 1.5;
+        resize: vertical;
+        transition: border-color 0.3s ease;
+      }
+
+      textarea:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
+
+      .button-group {
+        display: flex;
+        gap: 15px;
+        margin-top: 20px;
+      }
+
+      button {
+        flex: 1;
+        padding: 15px 25px;
+        border: none;
+        border-radius: 10px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+
+      .btn-generate {
+        background: linear-gradient(135deg, #11998e, #38ef7d);
+        color: white;
+      }
+
+      .btn-generate:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(17, 153, 142, 0.3);
+      }
+
+      .btn-clear {
+        background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+        color: white;
+      }
+
+      .btn-clear:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(255, 107, 107, 0.3);
+      }
+
+      .btn-example {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+      }
+
+      .btn-example:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+      }
+
+      .loading {
+        display: none;
+        text-align: center;
+        padding: 40px;
+      }
+
+      .spinner {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #667eea;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 20px;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      .result-image {
+        max-width: 100%;
+        border-radius: 10px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        display: none;
+      }
+
+      .error {
+        background: #ffe6e6;
+        border: 2px solid #ff4757;
+        border-radius: 10px;
+        padding: 20px;
+        color: #c44569;
+        display: none;
+      }
+
+      .success {
+        background: #e8f5e8;
+        border: 2px solid #2ed573;
+        border-radius: 10px;
+        padding: 20px;
+        color: #2ed573;
+        display: none;
+      }
+
+      .info {
+        background: #e3f2fd;
+        border: 2px solid #2196f3;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 20px;
+        color: #1976d2;
+      }
+
+      @media (max-width: 768px) {
+        .content {
+          grid-template-columns: 1fr;
         }
 
         .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-        }
-
-        .header p {
-            font-size: 1.2em;
-            opacity: 0.9;
-        }
-
-        .content {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-            padding: 30px;
-        }
-
-        .input-section {
-            background: #f8f9fa;
-            border-radius: 15px;
-            padding: 25px;
-        }
-
-        .output-section {
-            background: #f8f9fa;
-            border-radius: 15px;
-            padding: 25px;
-        }
-
-        h2 {
-            color: #2c3e50;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        textarea {
-            width: 100%;
-            height: 300px;
-            border: 2px solid #e9ecef;
-            border-radius: 10px;
-            padding: 15px;
-            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-            font-size: 14px;
-            line-height: 1.5;
-            resize: vertical;
-            transition: border-color 0.3s ease;
-        }
-
-        textarea:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+          font-size: 2em;
         }
 
         .button-group {
-            display: flex;
-            gap: 15px;
-            margin-top: 20px;
+          flex-direction: column;
         }
-
-        button {
-            flex: 1;
-            padding: 15px 25px;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .btn-generate {
-            background: linear-gradient(135deg, #11998e, #38ef7d);
-            color: white;
-        }
-
-        .btn-generate:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(17, 153, 142, 0.3);
-        }
-
-        .btn-clear {
-            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
-            color: white;
-        }
-
-        .btn-clear:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(255, 107, 107, 0.3);
-        }
-
-        .btn-example {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-        }
-
-        .btn-example:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
-        }
-
-        .loading {
-            display: none;
-            text-align: center;
-            padding: 40px;
-        }
-
-        .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #667eea;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .result-image {
-            max-width: 100%;
-            border-radius: 10px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            display: none;
-        }
-
-        .error {
-            background: #ffe6e6;
-            border: 2px solid #ff4757;
-            border-radius: 10px;
-            padding: 20px;
-            color: #c44569;
-            display: none;
-        }
-
-        .success {
-            background: #e8f5e8;
-            border: 2px solid #2ed573;
-            border-radius: 10px;
-            padding: 20px;
-            color: #2ed573;
-            display: none;
-        }
-
-        .info {
-            background: #e3f2fd;
-            border: 2px solid #2196f3;
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 20px;
-            color: #1976d2;
-        }
-
-        @media (max-width: 768px) {
-            .content {
-                grid-template-columns: 1fr;
-            }
-            
-            .header h1 {
-                font-size: 2em;
-            }
-            
-            .button-group {
-                flex-direction: column;
-            }
-        }
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="container">
-        <div class="header">
-            <h1>🚀 Generador de Diagramas AWS</h1>
-            <p>API Serverless para crear diagramas de arquitectura</p>
-        </div>
+      <div class="header">
+        <h1>🚀 Generador de Diagramas AWS</h1>
+        <p>API Serverless para crear diagramas de arquitectura</p>
+      </div>
 
-        <div class="content">
-            <div class="input-section">
-                <h2>📝 Código Python</h2>
-                <div class="info">
-                    <strong>💡 Tip:</strong> Usa <code>show=False</code> en tu diagrama para optimizar el rendimiento
-                </div>
-                <textarea id="codigo" placeholder="Escribe tu código Python aquí...
+      <div class="content">
+        <div class="input-section">
+          <h2>📝 Código Python</h2>
+          <div class="info">
+            <strong>💡 Tip:</strong> Usa <code>show=False</code> en tu diagrama
+            para optimizar el rendimiento
+          </div>
+          <textarea
+            id="codigo"
+            placeholder="Escribe tu código Python aquí...
 
 Ejemplo:
 from diagrams import Diagram, Cluster
@@ -237,110 +244,116 @@ with Diagram('Mi Arquitectura', show=False):
     lambda_func = Lambda('Lambda Function')
     db = RDS('Database')
     
-    api >> lambda_func >> db"></textarea>
+    api >> lambda_func >> db"
+          ></textarea>
 
-                <div class="button-group">
-                    <button class="btn-generate" onclick="generarDiagrama()">
-                        ⚡ Generar Diagrama
-                    </button>
-                    <button class="btn-example" onclick="cargarEjemplo()">
-                        📋 Ejemplo
-                    </button>
-                    <button class="btn-clear" onclick="limpiarTodo()">
-                        🗑️ Limpiar
-                    </button>
-                </div>
-            </div>
-
-            <div class="output-section">
-                <h2>🖼️ Resultado</h2>
-                
-                <div id="loading" class="loading">
-                    <div class="spinner"></div>
-                    <p>Generando diagrama... ⏳</p>
-                </div>
-
-                <div id="error" class="error"></div>
-                <div id="success" class="success"></div>
-                
-                <img id="resultado" class="result-image" alt="Diagrama generado">
-            </div>
+          <div class="button-group">
+            <button class="btn-generate" onclick="generarDiagrama()">
+              ⚡ Generar Diagrama
+            </button>
+            <button class="btn-example" onclick="cargarEjemplo()">
+              📋 Ejemplo
+            </button>
+            <button class="btn-clear" onclick="limpiarTodo()">
+              🗑️ Limpiar
+            </button>
+          </div>
         </div>
+
+        <div class="output-section">
+          <h2>🖼️ Resultado</h2>
+
+          <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>Generando diagrama... ⏳</p>
+          </div>
+
+          <div id="error" class="error"></div>
+          <div id="success" class="success"></div>
+
+          <img id="resultado" class="result-image" alt="Diagrama generado" />
+        </div>
+      </div>
     </div>
 
     <script>
-        const API_URL = 'https://o2ymjtxz67.execute-api.us-east-1.amazonaws.com/dev/generar-diagrama';
+      const API_URL =
+        "https://o2ymjtxz67.execute-api.us-east-1.amazonaws.com/dev/generar-diagrama";
 
-        function mostrarCargando(mostrar) {
-            document.getElementById('loading').style.display = mostrar ? 'block' : 'none';
-            document.getElementById('resultado').style.display = mostrar ? 'none' : 'none';
-            document.getElementById('error').style.display = 'none';
-            document.getElementById('success').style.display = 'none';
-        }
+      function mostrarCargando(mostrar) {
+        document.getElementById("loading").style.display = mostrar
+          ? "block"
+          : "none";
+        document.getElementById("resultado").style.display = mostrar
+          ? "none"
+          : "none";
+        document.getElementById("error").style.display = "none";
+        document.getElementById("success").style.display = "none";
+      }
 
-        function mostrarError(mensaje) {
-            document.getElementById('error').innerHTML = `
+      function mostrarError(mensaje) {
+        document.getElementById("error").innerHTML = `
                 <strong>❌ Error:</strong><br>
                 ${mensaje}
             `;
-            document.getElementById('error').style.display = 'block';
-            document.getElementById('loading').style.display = 'none';
-        }
+        document.getElementById("error").style.display = "block";
+        document.getElementById("loading").style.display = "none";
+      }
 
-        function mostrarExito(mensaje) {
-            document.getElementById('success').innerHTML = `
+      function mostrarExito(mensaje) {
+        document.getElementById("success").innerHTML = `
                 <strong>✅ Éxito:</strong><br>
                 ${mensaje}
             `;
-            document.getElementById('success').style.display = 'block';
+        document.getElementById("success").style.display = "block";
+      }
+
+      async function generarDiagrama() {
+        const codigo = document.getElementById("codigo").value.trim();
+
+        if (!codigo) {
+          mostrarError("Por favor, ingresa código Python");
+          return;
         }
 
-        async function generarDiagrama() {
-            const codigo = document.getElementById('codigo').value.trim();
-            
-            if (!codigo) {
-                mostrarError('Por favor, ingresa código Python');
-                return;
-            }
+        mostrarCargando(true);
 
-            mostrarCargando(true);
+        try {
+          const response = await fetch(API_URL, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              codigo: codigo,
+            }),
+          });
 
-            try {
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        codigo: codigo
-                    })
-                });
+          const data = await response.json();
 
-                const data = await response.json();
+          if (response.ok && data.success) {
+            // Mostrar imagen
+            const imagen = document.getElementById("resultado");
+            imagen.src = `data:${data.contentType};base64,${data.imagen}`;
+            imagen.style.display = "block";
 
-                if (response.ok && data.success) {
-                    // Mostrar imagen
-                    const imagen = document.getElementById('resultado');
-                    imagen.src = `data:${data.contentType};base64,${data.imagen}`;
-                    imagen.style.display = 'block';
-                    
-                    mostrarExito(`
+            mostrarExito(`
                         Diagrama generado exitosamente!<br>
                         📊 Formato: ${data.formato.toUpperCase()}<br>
                         📏 Tamaño: ${(data.tamaño / 1024).toFixed(1)} KB
                     `);
-                } else {
-                    mostrarError(data.error || 'Error desconocido');
-                }
-            } catch (error) {
-                mostrarError(`Error de conexión: ${error.message}`);
-            }
-
-            mostrarCargando(false);
+          } else {
+            mostrarError(data.error || "Error desconocido");
+          }
+        } catch (error) {
+          mostrarError(`Error de conexión: ${error.message}`);
         }
 
-        function cargarEjemplo() {
-            const ejemplo = `from diagrams import Diagram, Cluster
+        mostrarCargando(false);
+      }
+
+      function cargarEjemplo() {
+        const ejemplo = `from diagrams import Diagram, Cluster
 from diagrams.aws.compute import ECS, Lambda
 from diagrams.aws.database import RDS, ElastiCache
 from diagrams.aws.network import ELB, APIGateway
@@ -365,21 +378,21 @@ with Diagram("Aplicación de Microservicios", show=False):
     servicios >> cache
     servicios >> procesador >> almacen`;
 
-            document.getElementById('codigo').value = ejemplo;
-        }
+        document.getElementById("codigo").value = ejemplo;
+      }
 
-        function limpiarTodo() {
-            document.getElementById('codigo').value = '';
-            document.getElementById('resultado').style.display = 'none';
-            document.getElementById('error').style.display = 'none';
-            document.getElementById('success').style.display = 'none';
-            document.getElementById('loading').style.display = 'none';
-        }
+      function limpiarTodo() {
+        document.getElementById("codigo").value = "";
+        document.getElementById("resultado").style.display = "none";
+        document.getElementById("error").style.display = "none";
+        document.getElementById("success").style.display = "none";
+        document.getElementById("loading").style.display = "none";
+      }
 
-        // Cargar ejemplo al iniciar
-        window.onload = function() {
-            cargarEjemplo();
-        };
+      // Cargar ejemplo al iniciar
+      window.onload = function () {
+        cargarEjemplo();
+      };
     </script>
-</body>
+  </body>
 </html>
