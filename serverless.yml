@@ -52,7 +52,7 @@ functions:
           method: options
 
 layers:
-  graphviz:
+  GraphvizLambdaLayer:
     name: ${self:service}-graphviz-layer-${opt:stage, 'dev'}
     description: Capa con Graphviz y dependencias para generar diagramas
     compatibleRuntimes:
