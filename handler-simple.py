@@ -3,21 +3,19 @@ import base64
 import tempfile
 import os
 import sys
-from io import BytesIO
+import subprocess
+
+# Agrega /opt/bin al PATH para que encuentre dot y neato de la capa
+os.environ["PATH"] = "/opt/bin:" + os.environ.get("PATH", "")
 
 def generar_diagrama(event, context):
-    """
-    Función Lambda que simula la generación de diagramas
-    (para demo sin dependencias de Graphviz)
-    """
     try:
-        # Parsear el body del request
+        # Parsear body JSON
         if isinstance(event.get('body'), str):
             body = json.loads(event['body'])
         else:
             body = event.get('body', {})
         
-        # Obtener el código del diagrama
         codigo_diagrama = body.get('codigo', '')
         
         if not codigo_diagrama:
@@ -29,47 +27,42 @@ def generar_diagrama(event, context):
                     'Access-Control-Allow-Headers': 'Content-Type',
                     'Access-Control-Allow-Methods': 'POST, OPTIONS'
                 },
-                'body': json.dumps({
-                    'error': 'El campo "codigo" es requerido'
-                })
+                'body': json.dumps({'error': 'El campo "codigo" es requerido'})
             }
         
-        # Por ahora, devolver un placeholder hasta que resolvamos Graphviz
-        # Crear una imagen simple de placeholder
-        import io
-        from PIL import Image, ImageDraw, ImageFont
-        
-        # Crear imagen de placeholder
-        img = Image.new('RGB', (800, 600), color='white')
-        draw = ImageDraw.Draw(img)
-        
-        # Dibujar texto
-        try:
-            # Intentar usar una fuente por defecto
-            font = ImageFont.load_default()
-        except:
-            font = None
+        # Crear directorio temporal para trabajar
+        with tempfile.TemporaryDirectory() as tmpdir:
+            script_path = os.path.join(tmpdir, "script.py")
+            output_path = os.path.join(tmpdir, "diagram.png")
             
-        draw.text((50, 50), "Diagrama Generado", fill='black', font=font)
-        draw.text((50, 100), "Código recibido:", fill='black', font=font)
-        
-        # Mostrar las primeras líneas del código
-        lines = codigo_diagrama.split('\n')[:10]
-        y_pos = 150
-        for line in lines:
-            if len(line) > 80:
-                line = line[:80] + "..."
-            draw.text((50, y_pos), line, fill='blue', font=font)
-            y_pos += 30
-        
-        draw.text((50, 500), "✅ API funcionando correctamente", fill='green', font=font)
-        draw.text((50, 530), "🔧 Graphviz será agregado próximamente", fill='orange', font=font)
-        
-        # Convertir a bytes
-        img_buffer = io.BytesIO()
-        img.save(img_buffer, format='PNG')
-        img_bytes = img_buffer.getvalue()
-        imagen_base64 = base64.b64encode(img_bytes).decode('utf-8')
+            # Modifica el código para que guarde el diagrama en 'diagram.png' y no muestre ventana
+            codigo_modificado = (
+                "from diagrams import Diagram\n"
+                "from diagrams.aws.compute import Lambda\n"
+                "with Diagram('Diagram', filename='diagram', outformat='png', show=False):\n"
+                "    lambda_func = Lambda('Function')\n"
+            )
+            # Opcional: usar el código recibido, pero mejor validar o sanitizar antes
+            # Aquí simplemente usamos el código recibido, debes asegurarte que genera un archivo 'diagram.png'
+            # Para este ejemplo, guardamos directamente el código recibido:
+            with open(script_path, "w") as f:
+                f.write(codigo_diagrama)
+            
+            # Ejecutar el script para que genere diagram.png
+            subprocess.check_call([sys.executable, script_path], cwd=tmpdir)
+            
+            # Verificar si se generó la imagen
+            if not os.path.isfile(output_path):
+                return {
+                    'statusCode': 500,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({'error': 'No se generó la imagen del diagrama'})
+                }
+            
+            with open(output_path, "rb") as img_file:
+                img_bytes = img_file.read()
+            
+            imagen_base64 = base64.b64encode(img_bytes).decode('utf-8')
         
         return {
             'statusCode': 200,
@@ -85,25 +78,25 @@ def generar_diagrama(event, context):
                 'formato': 'png',
                 'contentType': 'image/png',
                 'tamaño': len(img_bytes),
-                'mensaje': 'Placeholder generado exitosamente. Graphviz será agregado pronto.'
+                'mensaje': 'Diagrama generado exitosamente.'
             })
         }
-                
+    
+    except subprocess.CalledProcessError as e:
+        return {
+            'statusCode': 500,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'error': f'Error al ejecutar el script: {e}'})
+        }
     except Exception as e:
         return {
             'statusCode': 500,
-            'headers': {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-            },
-            'body': json.dumps({
-                'error': f'Error interno: {str(e)}'
-            })
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'error': f'Error interno: {str(e)}'})
         }
 
 
 def preflight_handler(event, context):
-    """Handler para peticiones OPTIONS (CORS preflight)"""
     return {
         'statusCode': 200,
         'headers': {

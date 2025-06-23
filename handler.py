@@ -3,26 +3,20 @@ import base64
 import tempfile
 import os
 import sys
-from io import BytesIO
+import subprocess
 
-# Agregar la ruta de la capa a sys.path
-sys.path.insert(0, '/opt/python')
+# Agrega /opt/bin al PATH para que encuentre dot y neato de la capa
+os.environ["PATH"] = "/opt/bin:" + os.environ.get("PATH", "")
 
 def generar_diagrama(event, context):
-    """
-    Función Lambda que recibe código Python para generar diagramas
-    y devuelve la imagen generada en base64
-    """
     try:
-        # Parsear el body del request
+        # Parsear body JSON
         if isinstance(event.get('body'), str):
             body = json.loads(event['body'])
         else:
             body = event.get('body', {})
         
-        # Obtener el código del diagrama
         codigo_diagrama = body.get('codigo', '')
-        formato_salida = body.get('formato', 'png')  # png, svg, pdf
         
         if not codigo_diagrama:
             return {
@@ -33,141 +27,76 @@ def generar_diagrama(event, context):
                     'Access-Control-Allow-Headers': 'Content-Type',
                     'Access-Control-Allow-Methods': 'POST, OPTIONS'
                 },
-                'body': json.dumps({
-                    'error': 'El campo "codigo" es requerido'
-                })
+                'body': json.dumps({'error': 'El campo "codigo" es requerido'})
             }
         
-        # Crear directorio temporal
-        with tempfile.TemporaryDirectory() as temp_dir:
-            # Cambiar al directorio temporal
-            original_cwd = os.getcwd()
-            os.chdir(temp_dir)
+        # Crear directorio temporal para trabajar
+        with tempfile.TemporaryDirectory() as tmpdir:
+            script_path = os.path.join(tmpdir, "script.py")
+            output_path = os.path.join(tmpdir, "diagram.png")
             
-            try:
-                # Configurar variables de entorno para Graphviz
-                os.environ['PATH'] = '/opt/graphviz/bin:' + os.environ.get('PATH', '')
-                os.environ['LD_LIBRARY_PATH'] = '/opt/graphviz/lib:' + os.environ.get('LD_LIBRARY_PATH', '')
-                
-                # Crear el namespace para ejecutar el código
-                namespace = {
-                    '__name__': '__main__',
-                    '__file__': 'diagram.py'
-                }
-                
-                # Importar las librerías necesarias en el namespace
-                exec("""
-from diagrams import Diagram, Cluster
-from diagrams.aws.compute import ECS, Lambda, EC2
-from diagrams.aws.database import RDS, ElastiCache
-from diagrams.aws.network import ELB, APIGateway, CloudFront
-from diagrams.aws.storage import S3
-from diagrams.aws.integration import SQS, SNS
-from diagrams.onprem.database import MySQL, PostgreSQL, MongoDB
-from diagrams.onprem.inmemory import Redis
-from diagrams.onprem.network import Nginx
-""", namespace)
-                
-                # Ejecutar el código del usuario
-                exec(codigo_diagrama, namespace)
-                
-                # Buscar archivos generados
-                archivos_imagen = []
-                for archivo in os.listdir(temp_dir):
-                    if archivo.lower().endswith(('.png', '.svg', '.pdf', '.jpg', '.jpeg')):
-                        archivos_imagen.append(archivo)
-                
-                if not archivos_imagen:
-                    return {
-                        'statusCode': 500,
-                        'headers': {
-                            'Content-Type': 'application/json',
-                            'Access-Control-Allow-Origin': '*'
-                        },
-                        'body': json.dumps({
-                            'error': 'No se generó ningún archivo de imagen. Asegúrate de usar with Diagram(...): en tu código.'
-                        })
-                    }
-                
-                # Tomar el primer archivo encontrado
-                archivo_imagen = archivos_imagen[0]
-                ruta_imagen = os.path.join(temp_dir, archivo_imagen)
-                
-                # Leer el archivo y convertir a base64
-                with open(ruta_imagen, 'rb') as f:
-                    imagen_bytes = f.read()
-                    imagen_base64 = base64.b64encode(imagen_bytes).decode('utf-8')
-                
-                # Determinar el tipo MIME
-                extension = archivo_imagen.split('.')[-1].lower()
-                mime_types = {
-                    'png': 'image/png',
-                    'svg': 'image/svg+xml',
-                    'pdf': 'application/pdf',
-                    'jpg': 'image/jpeg',
-                    'jpeg': 'image/jpeg'
-                }
-                content_type = mime_types.get(extension, 'application/octet-stream')
-                
+            # Modifica el código para que guarde el diagrama en 'diagram.png' y no muestre ventana
+            codigo_modificado = (
+                "from diagrams import Diagram\n"
+                "from diagrams.aws.compute import Lambda\n"
+                "with Diagram('Diagram', filename='diagram', outformat='png', show=False):\n"
+                "    lambda_func = Lambda('Function')\n"
+            )
+            # Opcional: usar el código recibido, pero mejor validar o sanitizar antes
+            # Aquí simplemente usamos el código recibido, debes asegurarte que genera un archivo 'diagram.png'
+            # Para este ejemplo, guardamos directamente el código recibido:
+            with open(script_path, "w") as f:
+                f.write(codigo_diagrama)
+            
+            # Ejecutar el script para que genere diagram.png
+            subprocess.check_call([sys.executable, script_path], cwd=tmpdir)
+            
+            # Verificar si se generó la imagen
+            if not os.path.isfile(output_path):
                 return {
-                    'statusCode': 200,
-                    'headers': {
-                        'Content-Type': 'application/json',
-                        'Access-Control-Allow-Origin': '*',
-                        'Access-Control-Allow-Headers': 'Content-Type',
-                        'Access-Control-Allow-Methods': 'POST, OPTIONS'
-                    },
-                    'body': json.dumps({
-                        'success': True,
-                        'imagen': imagen_base64,
-                        'formato': extension,
-                        'contentType': content_type,
-                        'tamaño': len(imagen_bytes),
-                        'mensaje': f'Diagrama generado exitosamente como {archivo_imagen}'
-                    })
+                    'statusCode': 500,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({'error': 'No se generó la imagen del diagrama'})
                 }
-                
-            finally:
-                # Restaurar directorio original
-                os.chdir(original_cwd)
-                
-    except SyntaxError as e:
+            
+            with open(output_path, "rb") as img_file:
+                img_bytes = img_file.read()
+            
+            imagen_base64 = base64.b64encode(img_bytes).decode('utf-8')
+        
         return {
-            'statusCode': 400,
+            'statusCode': 200,
             'headers': {
                 'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Headers': 'Content-Type',
+                'Access-Control-Allow-Methods': 'POST, OPTIONS'
             },
             'body': json.dumps({
-                'error': f'Error de sintaxis en el código: {str(e)}'
+                'success': True,
+                'imagen': imagen_base64,
+                'formato': 'png',
+                'contentType': 'image/png',
+                'tamaño': len(img_bytes),
+                'mensaje': 'Diagrama generado exitosamente.'
             })
         }
-    except ImportError as e:
+    
+    except subprocess.CalledProcessError as e:
         return {
-            'statusCode': 400,
-            'headers': {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-            },
-            'body': json.dumps({
-                'error': f'Error de importación: {str(e)}. Verifica que estés usando las librerías disponibles.'
-            })
+            'statusCode': 500,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'error': f'Error al ejecutar el script: {e}'})
         }
     except Exception as e:
         return {
             'statusCode': 500,
-            'headers': {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-            },
-            'body': json.dumps({
-                'error': f'Error interno: {str(e)}'
-            })
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'error': f'Error interno: {str(e)}'})
         }
 
 
 def preflight_handler(event, context):
-    """Handler para peticiones OPTIONS (CORS preflight)"""
     return {
         'statusCode': 200,
         'headers': {
