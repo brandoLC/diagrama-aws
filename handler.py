@@ -5,8 +5,10 @@ import os
 import sys
 import subprocess
 
-# Agrega /opt/bin al PATH para que encuentre dot y neato de la capa
+# Añade al PATH los binarios de Graphviz
 os.environ["PATH"] = "/opt/bin:" + os.environ.get("PATH", "")
+# Añade al PYTHONPATH la carpeta python/lib/python3.9/site-packages de la capa
+sys.path.append('/opt/python/lib/python3.9/site-packages')
 
 def generar_diagrama(event, context):
     try:
@@ -35,20 +37,11 @@ def generar_diagrama(event, context):
             script_path = os.path.join(tmpdir, "script.py")
             output_path = os.path.join(tmpdir, "diagram.png")
             
-            # Modifica el código para que guarde el diagrama en 'diagram.png' y no muestre ventana
-            codigo_modificado = (
-                "from diagrams import Diagram\n"
-                "from diagrams.aws.compute import Lambda\n"
-                "with Diagram('Diagram', filename='diagram', outformat='png', show=False):\n"
-                "    lambda_func = Lambda('Function')\n"
-            )
-            # Opcional: usar el código recibido, pero mejor validar o sanitizar antes
-            # Aquí simplemente usamos el código recibido, debes asegurarte que genera un archivo 'diagram.png'
-            # Para este ejemplo, guardamos directamente el código recibido:
+            # Guardar el código recibido en script.py
             with open(script_path, "w") as f:
                 f.write(codigo_diagrama)
             
-            # Ejecutar el script para que genere diagram.png
+            # Ejecutar el script para generar diagram.png
             subprocess.check_call([sys.executable, script_path], cwd=tmpdir)
             
             # Verificar si se generó la imagen
