@@ -17,16 +17,39 @@ functions:
   generarDiagrama:
     handler: handler.generar_diagrama
     layers:
-      - { Ref: GraphvizLambdaLayer }
+      - { Ref: GraphvizLogicalId }
     events:
       - http:
           path: /generar-diagrama
           method: post
-          cors: true
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+            allowCredentials: false
       - http:
           path: /generar-diagrama
           method: options
-          cors: true
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+            allowCredentials: false
+
+  preflightHandler:
+    handler: handler.preflight_handler
+    events:
+      - http:
+          path: /generar-diagrama
+          method: options
 
 layers:
   graphviz:
@@ -36,24 +59,3 @@ layers:
       - python3.9
     package:
       artifact: layers/graphviz-layer/graphviz-layer.zip
-
-resources:
-  Resources:
-    GraphvizLambdaLayer:
-      Type: AWS::Lambda::LayerVersion
-      Properties:
-        LayerName: ${self:service}-graphviz-layer-${opt:stage, 'dev'}
-        Description: Capa con Graphviz instalado para generar diagramas
-        Content:
-          S3Bucket: { Ref: ServerlessDeploymentBucket }
-          S3Key: { Ref: GraphvizLambdaLayerLambdaLayer }
-
-plugins:
-  - serverless-python-requirements
-
-custom:
-  pythonRequirements:
-    dockerizePip: true
-    layer:
-      name: ${self:service}-requirements-${opt:stage, 'dev'}
-      description: Python requirements layer
