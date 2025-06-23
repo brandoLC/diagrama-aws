@@ -17,13 +17,13 @@ functions:
   generarDiagrama:
     handler: handler.generar_diagrama
     layers:
-      - { Ref: GraphvizLogicalId }
+      - { Ref: GraphvizLambdaLayer }
     events:
       - http:
           path: /generar-diagrama
           method: post
           cors:
-            origin: '*'
+            origin: "*"
             headers:
               - Content-Type
               - X-Amz-Date
@@ -35,7 +35,7 @@ functions:
           path: /generar-diagrama
           method: options
           cors:
-            origin: '*'
+            origin: "*"
             headers:
               - Content-Type
               - X-Amz-Date
