@@ -58,19 +58,11 @@ def generar_diagrama(event, context):
                 # Importar las librerías necesarias en el namespace
                 exec("""
 from diagrams import Diagram, Cluster
-from diagrams.aws.compute import ECS, Lambda, EC2, Batch, EKS
-from diagrams.aws.database import RDS, ElastiCache, DynamoDB, Redshift
-from diagrams.aws.network import ELB, APIGateway, CloudFront, Route53
+from diagrams.aws.compute import ECS, Lambda, EC2
+from diagrams.aws.database import RDS, ElastiCache
+from diagrams.aws.network import ELB, APIGateway, CloudFront
 from diagrams.aws.storage import S3
-from diagrams.aws.analytics import EMR, Glue, Kinesis
 from diagrams.aws.integration import SQS, SNS
-from diagrams.aws.security import IAM, Cognito
-from diagrams.azure.compute import VM, FunctionApps, ContainerInstances
-from diagrams.azure.database import SQLDatabases, CosmosDb
-from diagrams.azure.network import LoadBalancers, ApplicationGateway
-from diagrams.gcp.compute import ComputeEngine, Functions, GKE
-from diagrams.gcp.database import SQL, Firestore
-from diagrams.gcp.network import LoadBalancing
 from diagrams.onprem.database import MySQL, PostgreSQL, MongoDB
 from diagrams.onprem.inmemory import Redis
 from diagrams.onprem.network import Nginx
